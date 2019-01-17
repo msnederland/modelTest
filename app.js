@@ -7,13 +7,13 @@ const User = require('./models/user');
 console.log("starting");
 mongoose.connect('mongodb://localhost:27017/stationTest');
 
-//User.create({userName: "Thomas", apiKey: "112233"})
+User.create({userName: "Thomas", apiKey: "112233"})
 
 //lookForStations();
 
 console.log("----------------------------------")
 
-//addStation()
+addStation()
 
 lookForUsers("Thomas")
 
