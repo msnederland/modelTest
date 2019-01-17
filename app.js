@@ -7,7 +7,7 @@ const User = require('./models/user');
 console.log("starting");
 mongoose.connect('mongodb://localhost:27017/stationTest');
 
-User.create({userName: "Thomas", apiKey: "112233"})
+//User.create({userName: "Thomas", apiKey: "112233"})
 
 //lookForStations();
 
@@ -58,7 +58,7 @@ function updateStation(station, apiKey) {
 	then(result =>{
 		if(result.stationOf.apiKey == request.apiKey) {
 			console.log("I can do this for you")
-			Station.findOneAndUpdate({_id: result.id}, {$set: {temperature: request.temperature}}).
+			Station.findOneAndUpdate({_id: result.id}, {$set: {temperature: request.temperature}}, {new:true}).
 			exec().
 			then(result =>{
 				console.log("updated station")
@@ -80,7 +80,7 @@ function updateStation(station, apiKey) {
 function addStation() {
 
 	const user = {
-		apiKey: "1234567890"
+		apiKey: "112233"
 	}
 
 	User.findOne({apiKey: user.apiKey}).
@@ -90,14 +90,14 @@ function addStation() {
 		console.log("----------------------------------")
 
 		const station = {
-			stationName: "kantoor",
-			mac: "11:22:22",
+			stationName: "kantoor23",
+			mac: "11:22:44",
 			stationOf: user._id
 		}
 		
 		Station.create(station).
 		then(result => {
-			User.findOneAndUpdate({_id: user._id},{$push: {stations:result._id}}).
+			User.findByIdAndUpdate(user._id,{$push: {stations:result._id}}).
 			exec().
 			then(result => {
 				console.log({message:"result of updating user", result: result})
