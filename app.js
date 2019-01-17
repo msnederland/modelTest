@@ -7,13 +7,13 @@ const User = require('./models/user');
 console.log("starting");
 mongoose.connect('mongodb://localhost:27017/stationTest');
 
-User.create({userName: "Thomas", apiKey: "112233"})
+//User.create({userName: "Thomas", apiKey: "112233"})
 
 //lookForStations();
 
 console.log("----------------------------------")
 
-addStation()
+//addStation()
 
 lookForUsers("Thomas")
 
@@ -22,7 +22,7 @@ lookForUsers("Thomas")
 
 function lookForUsers(name) {
 	User.find({userName: name}).
-	populate('stations').
+	//populate('stations').
 	exec().
 	then(results =>{
 		console.log({message: "Looked for Users", results:results});
@@ -97,7 +97,7 @@ function addStation() {
 		
 		Station.create(station).
 		then(result => {
-			User.findByIdAndUpdate(user._id,{$push: {stations:result._id}}).
+			User.findByIdAndUpdate(user._id,{$push: {stations:result._id, 	stationNames: station.stationName}}).
 			exec().
 			then(result => {
 				console.log({message:"result of updating user", result: result})
