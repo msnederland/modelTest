@@ -19,7 +19,7 @@ console.log("----------------------------------")
 lookForUsers("Thomas")
 
 //updateStation("kantoor24", "112233");
-//deleteStation("kantoor25", "112233");
+deleteStation("kantoor25", "112233");
 
 
 function lookForUsers(name) {
@@ -149,7 +149,7 @@ function deleteStation(station,apiKey) {
 	}
 
 	Station.findOne({stationName: station}).
-	populate('stationOf', 'apiKey', 'macAddresses').
+	populate('stationOf', 'apiKey macAddresses' ).
 	exec().
 	then(result =>{
 
@@ -168,7 +168,7 @@ function deleteStation(station,apiKey) {
 				catch(err => {
 					console.log({message:"error while deleting station", error: err})
 				})
-
+				
 				User.findByIdAndUpdate(result.stationOf._id,{$pull: {macAddresses: result.mac}}).
 				exec().
 				then(result =>{
@@ -177,6 +177,7 @@ function deleteStation(station,apiKey) {
 				catch(err => {
 					console.log({message:"error while deleting station", error: err})
 				})
+				
 
 			} else if(result.stationOf.apiKey != request.apiKey) {
 				console.log("No way dude, not your station")
