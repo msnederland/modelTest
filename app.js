@@ -8,7 +8,7 @@ console.log("starting");
 mongoose.connect('mongodb://localhost:27017/stationTest');
 
 
-//User.create({userName: "Thomas", apiKey: "112233"})
+//User.create({userName: "Thomas", apiKey: "112233"});
 
 //lookForStations();
 
@@ -19,7 +19,7 @@ console.log("----------------------------------")
 lookForUsers("Thomas")
 
 //updateStation("kantoor24", "112233");
-deleteStation("kantoor25", "112233");
+//deleteStation("kantoor25", "112233");
 
 
 function lookForUsers(name) {
@@ -36,7 +36,7 @@ function lookForUsers(name) {
 
 function lookForStations() {
 	Station.find().
-	populate('stationOf', 'apiKey').
+	populate('stationOf', 'apiKey macAddresses').
 	exec().
 	then(results =>{
 		console.log({message: "Looked for stations", results: results});
@@ -110,17 +110,17 @@ function addStation() {
 				stationOf: user._id
 			}
 
-			console.log({message:"Didn't find mac", result: user})
+			console.log({message:"Found user, and mac is unique", result: user})
 
 			Station.create(station).
 			then(result => {
-				User.findByIdAndUpdate(user._id,{$push: {stations:result._id, macAddresses: station.mac}}).
+				User.findByIdAndUpdate(user._id,{$push: {stations:result._id, macAddresses: station.mac}}, {new:true}).
 				exec().
 				then(result => {
-					console.log({message:"result of updating user", result: result})
+					console.log({message:"Result of adding MAC Address to unique list", result: result})
 				}).
 				catch(err=> {
-					console.log({message:"error updating user", result: result})
+					console.log({message:"error adding MAC Address to unique list", result: result})
 				})
 					console.log({message: "Added station", results: result, stationId: result._id})
 				}).
@@ -149,7 +149,7 @@ function deleteStation(station,apiKey) {
 	}
 
 	Station.findOne({stationName: station}).
-	populate('stationOf', 'apiKey').
+	populate('stationOf', 'apiKey', 'macAddresses').
 	exec().
 	then(result =>{
 
@@ -164,6 +164,15 @@ function deleteStation(station,apiKey) {
 				exec().
 				then(result =>{
 					console.log("deleted station")
+				}).
+				catch(err => {
+					console.log({message:"error while deleting station", error: err})
+				})
+
+				User.findByIdAndUpdate(result.stationOf._id,{$pull: {macAddresses: result.mac}}).
+				exec().
+				then(result =>{
+					console.log({message: "Result of delting mac from list of unique macs", results: result})
 				}).
 				catch(err => {
 					console.log({message:"error while deleting station", error: err})
