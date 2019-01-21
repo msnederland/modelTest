@@ -3,11 +3,18 @@ const mongoose = require('mongoose');
 
 const Station = require('./models/station');
 const User = require('./models/user');
+var moment = require('moment');
 
 console.log("starting");
 mongoose.connect('mongodb://localhost:27017/stationTest');
+now = moment().format('MM-DD-YYYY HH:mm:ss');
+
+date1 = moment('01-01-2018');
+date2 = moment('01-01-2019');
 
 
+//console.log(date1.isSame(date2, 'year'))
+//console.log(now);
 //User.create({userName: "Thomas", apiKey: "112233"});
 
 //lookForStations();
@@ -16,11 +23,12 @@ console.log("----------------------------------")
 
 //addStation()
 
-lookForUsers("Thomas")
+//lookForUsers("Thomas")
 
-//updateStation("kantoor24", "112233");
-deleteStation("kantoor25", "112233");
+updateStation("kantoor25", "112233");
+//deleteStation("kantoor25", "112233");
 
+//findOnDate();
 
 function lookForUsers(name) {
 	User.find({userName: name}).
@@ -46,13 +54,31 @@ function lookForStations() {
 	})
 }
 
+function findOnDate() {
+
+	Station.findOne({'temperature.when': '2017-12-31T23:00:00.000Z'}).
+	exec().
+	then(result=> {
+		console.log({message: "I think we found something", result: result})
+	}).
+	catch(err => {
+		console.log(err)
+	})
+}
+
 function updateStation(station, apiKey) {
 
 	const request = {
 		station: station,
 		apiKey: apiKey,
-		temperature: 20
+		temperature: 20,
+		when: now,
+		dateWithTime: now
 	}
+
+	console.log(request)
+
+
 
 	Station.findOne({stationName: station}).
 	populate('stationOf', 'apiKey').
@@ -65,7 +91,80 @@ function updateStation(station, apiKey) {
 
 				console.log("I can do this for you")
 
-				Station.findOneAndUpdate({_id: result.id}, {$set: {temperature: request.temperature}}, {new:true}).
+				Station.findOne({stationName: station, 'temperature.when': '2017-12-31T23:10:01.000Z'}).
+				exec().
+				then(result =>{
+					console.log("MOTHERFUCKING RESULT");
+					//console.log(result);
+					if(result){
+						console.log("FIRED WITH RESULT")
+						Station.findOneAndUpdate({'temperature.when':'2017-12-31T23:00:00.000Z'}, {$push: {'temperature.$.temperature': {when:request.dateWithTime, reading: request.temperature}}}).
+						exec().
+						then(result =>{
+							//console.log(result)	
+						}).
+						catch(err =>{
+							console.log(err)
+						})	
+					}else if(!result){
+						console.log("FIRED WITHOUTTTTT RESULT")
+						Station.findOneAndUpdate({stationName: station}, {$push: {'temperature': {when: '2017-12-31T23:10:01.000Z', temperature: {when: request.dateWithTime, reading: request.temperature}}}}).
+						exec().
+						then(result =>{
+							console.log(result)	
+						}).
+						catch(err =>{
+							console.log(err)
+						})	
+
+					}
+					console.log("updated station")
+				}).
+				catch(err => {
+					console.log({message:"error while updating station", error: err})
+				})
+
+			} else if(result.stationOf.apiKey != request.apiKey) {
+				console.log("No way dude, not your station")
+			}
+
+		} else {
+			console.log("Didn't find station")
+		}
+	
+	}).
+	catch(err => {
+		console.log({message: "this ended in disaster",error: err})
+	})
+
+}
+
+
+
+/*
+function updateStation(station, apiKey) {
+
+	const request = {
+		station: station,
+		apiKey: apiKey,
+		temperature: 20,
+		when: moment('01-01-2018')
+	}
+
+
+
+	Station.findOne({stationName: station}).
+	populate('stationOf', 'apiKey').
+	exec().
+	then(result =>{
+
+		if(result){
+
+			if(result.stationOf.apiKey == request.apiKey) {
+
+				console.log("I can do this for you")
+
+				Station.findOneAndUpdate({_id: result.id, 'temperature.when': request.when}, {$set: {temperature: request.temperature}}, {new:true}).
 				exec().
 				then(result =>{
 					console.log("updated station")
@@ -89,6 +188,7 @@ function updateStation(station, apiKey) {
 
 }
 
+*/
 
 function addStation() {
 
