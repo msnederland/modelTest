@@ -68,12 +68,10 @@ function updateStation(station, apiKey) {
 		station: station,
 		apiKey: apiKey,
 		temperature: 20,
-		//when: moment.utc().format()
-		when: '2019-01-19T01:00:00Z',
+		when: '2019-01-21T01:00:00Z',
 	}	
 
 	console.log(request)
-	console.log(moment.utc('2019-01-21T01:00:00Z').startOf('day').format())
 
 	const partitionDay = moment.utc(request.when).startOf('day').format()
 	console.log(partitionDay)
@@ -90,16 +88,16 @@ function updateStation(station, apiKey) {
 			if(result.stationOf.apiKey == request.apiKey) {
 
 				console.log("I can do this for you")
+				const partitionDay = moment.utc(request.when).startOf('day').format()
 
-
-				Station.findOne({stationName: station, 'temperature.partitionDay': request.partitionDay}).
+				Station.findOne({stationName: station, 'temperature.partitionDay': partitionDay}).
 				exec().
 				then(result =>{
 					console.log("MOTHERFUCKING RESULT");
 					console.log(result);
 					if(result){
 						console.log("FIRED WITH RESULT")
-						Station.findOneAndUpdate({'temperature.partitionDay':request.partitionDay}, {$push: {'temperature.$.readings': {when:request.when, value: request.temperature}}}).
+						Station.findOneAndUpdate({'temperature.partitionDay': partitionDay}, {$push: {'temperature.$.readings': {when:request.when, value: request.temperature}}}).
 						exec().
 						then(result =>{
 							//console.log(result)	
@@ -109,7 +107,7 @@ function updateStation(station, apiKey) {
 						})	
 					}else if(!result){
 						console.log("FIRED WITHOUTTTTT RESULT")
-						Station.findOneAndUpdate({stationName: station}, {$push: {'temperature': {partitionDay: request.partitionDay, readings: {when: request.when, value: request.temperature}}}}).
+						Station.findOneAndUpdate({stationName: station}, {$push: {'temperature': {partitionDay: partitionDay, readings: {when: request.when, value: request.temperature}}}}).
 						exec().
 						then(result =>{
 							console.log(result)	
