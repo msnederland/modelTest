@@ -1,20 +1,16 @@
 
 const mongoose = require('mongoose');
+var DateOnly = require('mongoose-dateonly')(mongoose);
 
 const Station = require('./models/station');
 const User = require('./models/user');
-var moment = require('moment');
+var moment = require('moment-timezone');
+moment().tz("Europe/Amsterdam").format();
+
 
 console.log("starting");
 mongoose.connect('mongodb://localhost:27017/stationTest');
-now = moment().format('MM-DD-YYYY HH:mm:ss');
 
-date1 = moment('01-01-2018');
-date2 = moment('01-01-2019');
-
-
-//console.log(date1.isSame(date2, 'year'))
-//console.log(now);
 //User.create({userName: "Thomas", apiKey: "112233"});
 
 //lookForStations();
@@ -44,7 +40,7 @@ function lookForUsers(name) {
 
 function lookForStations() {
 	Station.find().
-	populate('stationOf', 'apiKey macAddresses').
+	//populate('stationOf', 'apiKey macAddresses').
 	exec().
 	then(results =>{
 		console.log({message: "Looked for stations", results: results});
@@ -72,11 +68,15 @@ function updateStation(station, apiKey) {
 		station: station,
 		apiKey: apiKey,
 		temperature: 20,
-		when: now,
-		dateWithTime: now
-	}
+		//when: moment.utc().format()
+		when: '2019-01-19T01:00:00Z',
+	}	
 
 	console.log(request)
+	console.log(moment.utc('2019-01-21T01:00:00Z').startOf('day').format())
+
+	const partitionDay = moment.utc(request.when).startOf('day').format()
+	console.log(partitionDay)
 
 
 
@@ -91,14 +91,15 @@ function updateStation(station, apiKey) {
 
 				console.log("I can do this for you")
 
-				Station.findOne({stationName: station, 'temperature.when': '2017-12-31T23:10:01.000Z'}).
+
+				Station.findOne({stationName: station, 'temperature.partitionDay': request.partitionDay}).
 				exec().
 				then(result =>{
 					console.log("MOTHERFUCKING RESULT");
-					//console.log(result);
+					console.log(result);
 					if(result){
 						console.log("FIRED WITH RESULT")
-						Station.findOneAndUpdate({'temperature.when':'2017-12-31T23:00:00.000Z'}, {$push: {'temperature.$.temperature': {when:request.dateWithTime, reading: request.temperature}}}).
+						Station.findOneAndUpdate({'temperature.partitionDay':request.partitionDay}, {$push: {'temperature.$.readings': {when:request.when, value: request.temperature}}}).
 						exec().
 						then(result =>{
 							//console.log(result)	
@@ -108,7 +109,7 @@ function updateStation(station, apiKey) {
 						})	
 					}else if(!result){
 						console.log("FIRED WITHOUTTTTT RESULT")
-						Station.findOneAndUpdate({stationName: station}, {$push: {'temperature': {when: '2017-12-31T23:10:01.000Z', temperature: {when: request.dateWithTime, reading: request.temperature}}}}).
+						Station.findOneAndUpdate({stationName: station}, {$push: {'temperature': {partitionDay: request.partitionDay, readings: {when: request.when, value: request.temperature}}}}).
 						exec().
 						then(result =>{
 							console.log(result)	

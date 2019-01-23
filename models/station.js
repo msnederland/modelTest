@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const stationSchema = new mongoose.Schema({
 	stationName: {type: String, required: true},
 	mac: {type: String, required: true},
-	temperature: [{when: Date, temperature: [{when: Date,reading: Number}]}],
-	humidity: [{when: Date, humidity: [{when: Date,reading: Number}]}],
+	temperature: [{partitionDay: Date, readings: [{when: Date, value: Number}]}],
+	humidity: [{partitionDay: Date, readings: [{when: Date, value: Number}]}],
 	stationOf:{type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true}
 })
 

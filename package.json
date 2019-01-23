@@ -10,6 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "moment": "^2.23.0",
-    "mongoose": "^5.4.4"
+    "moment-timezone": "^0.5.23",
+    "mongodb-moment": "^1.0.2",
+    "mongoose": "^5.4.4",
+    "mongoose-dateonly": "^1.0.6",
+    "nodemon": "^1.18.9"
   }
 }
